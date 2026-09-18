@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ate Cynthia Farm — Maintenance &amp; Bills Record</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#1c1a17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cynthia Farm">
+<style>
+  :root {
+    --cream: #f2ead9;
+    --cream-dark: #e9dfc7;
+    --dark: #1c1a17;
+    --leaf: #4c7a3f;
+    --leaf-light: #e5efdd;
+    --leaf-border: #a9c99a;
+    --ink: #2b2620;
+    --ink-soft: #7c7263;
+    --white: #ffffff;
+    --border: #e3dac2;
+    --danger: #b5482f;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Iowan Old Style", "Georgia", "Times New Roman", serif;
+  }
+
+  /* ---------- Auth screens ---------- */
+  .auth-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .auth-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .auth-card h1 {
+    margin: 0 0 4px;
+    color: var(--leaf);
+    font-size: 1.4rem;
+  }
+  .auth-card p.sub {
+    margin: 0 0 20px;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 0.9rem;
+  }
+  .auth-error {
+    background: #fbeae5;
+    color: var(--danger);
+    border: 1px solid #edc7ba;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+  }
+  .auth-switch {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- App shell ---------- */
+  .topbar {
+    background: var(--cream);
+    text-align: center;
+    padding: 14px 10px 10px;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 1rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .who {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-style: normal;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    text-align: right;
+    line-height: 1.3;
+  }
+  .who .role-tag {
+    display: inline-block;
+    background: var(--leaf-light);
+    color: var(--leaf);
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 0.65rem;
+    margin-left: 4px;
+  }
+  .who button {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 0.72rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    margin-left: 6px;
+    font-family: inherit;
+  }
+
+  .statsbar {
+    background: var(--dark);
+    color: #fff;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 18px 6px;
+  }
+  .statsbar .stat { text-align: center; padding: 0 3px; }
+  .statsbar .stat .label {
+    font-size: 0.58rem;
+    letter-spacing: 1px;
+    color: #b9b2a4;
+    margin-bottom: 6px;
+  }
+  .statsbar .stat .value {
+    font-size: 1.02rem;
+    font-weight: 600;
+  }
+  .statsbar .stat.spent .value { color: #f0d9c9; }
+  .statsbar .stat.cash .value { color: #dcefcf; }
+  .statsbar .stat.covered .value { color: #f0c9a8; }
+
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 130px);
+  }
+
+  nav.sidebar {
+    width: 84px;
+    flex-shrink: 0;
+    background: var(--cream);
+    border-right: 1px solid var(--border);
+    padding: 14px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  nav.sidebar .navitem {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 8px 2px 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+  }
+  nav.sidebar .navitem svg { width: 20px; height: 20px; stroke: var(--ink-soft); }
+  nav.sidebar .navitem span {
+    font-size: 0.66rem;
+    text-align: center;
+    line-height: 1.1;
+  }
+  nav.sidebar .navitem.active {
+    background: var(--leaf-light);
+    border-color: var(--leaf-border);
+  }
+  nav.sidebar .navitem.active svg { stroke: var(--leaf); }
+  nav.sidebar .navitem.active span { color: var(--leaf); font-weight: 600; }
+  nav.sidebar hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 6px 4px;
+    width: calc(100% - 8px);
+  }
+
+  main.content {
+    flex: 1;
+    min-width: 0;
+    padding: 22px 16px 60px;
+    background:
+      radial-gradient(ellipse at top right, rgba(76,122,63,0.06), transparent 55%),
+      radial-gradient(ellipse at bottom left, rgba(184,134,59,0.07), transparent 55%);
+  }
+
+  .cat-title {
+    color: var(--leaf);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .cat-sub {
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 0.95rem;
+    margin: 0 0 14px;
+  }
+  .cat-total {
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+  }
+  .cat-total b { font-weight: 700; }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .field { margin-bottom: 16px; }
+  input[type="text"], input[type="number"], input[type="date"], input[type="password"], select {
+    width: 100%;
+    padding: 12px 13px;
+    border: 1px solid #d9cfb2;
+    border-radius: 10px;
+    background: #fbf8f0;
+    color: var(--ink);
+    font-size: 0.98rem;
+    font-family: inherit;
+  }
+  input:focus, select:focus { outline: 2px solid var(--leaf-border); outline-offset: 1px; }
+
+  button.add-btn, button.auth-btn {
+    width: 100%;
+    background: var(--leaf);
+    color: #fff;
+    border: none;
+    padding: 15px 16px;
+    border-radius: 12px;
+    font-size: 1.02rem;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.add-btn:hover, button.auth-btn:hover { background: #3f6634; }
+  button.add-btn .plus { margin-right: 6px; }
+  button:disabled { opacity: 0.6; cursor: default; }
+
+  .entry {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--leaf);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .entry.income { border-left-color: #b8863b; }
+  .entry.covered { border-left-color: #a8492e; }
+  .entry .info .date { color: var(--ink-soft); font-size: 0.82rem; margin-bottom: 3px; }
+  .entry .info .desc { font-weight: 600; margin-bottom: 6px; }
+  .entry .info .or { color: var(--ink-soft); font-size: 0.78rem; margin-bottom: 4px; }
+  .entry .info .amt { color: var(--leaf); font-weight: 700; font-size: 1.05rem; }
+  .entry .del {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  .entry .del svg { width: 18px; height: 18px; stroke: var(--ink-soft); }
+  .entry .del:hover svg { stroke: var(--danger); }
+
+  .empty {
+    color: var(--ink-soft);
+    font-style: italic;
+    text-align: center;
+    padding: 30px 10px;
+  }
+
+  .hist-cat {
+    display: inline-block;
+    font-size: 0.72rem;
+    background: var(--leaf-light);
+    color: var(--leaf);
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+  }
+
+  .user-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .user-row .uname { font-weight: 600; }
+  .user-row .urole {
+    display: inline-block;
+    font-size: 0.7rem;
+    background: var(--leaf-light);
+    color: var(--leaf);
+    border-radius: 6px;
+    padding: 1px 7px;
+    margin-left: 8px;
+  }
+  .user-row .del-user {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    text-decoration: underline;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .user-row .del-user:hover { color: var(--danger); }
+
+  @media (max-width: 420px) {
+    nav.sidebar { width: 68px; }
+    nav.sidebar .navitem span { font-size: 0.6rem; }
+    .cat-title { font-size: 1.3rem; }
+    .who { position: static; display: block; transform: none; margin-top: 6px; }
+    .statsbar .stat .label { font-size: 0.46rem; letter-spacing: 0.3px; }
+    .statsbar .stat .value { font-size: 0.88rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="authRoot"></div>
+
+<div id="appRoot" style="display:none">
+  <div class="topbar">
+    Maintenance &amp; bills record — Ate Cynthia Farm
+    <div class="who" id="whoBox"></div>
+  </div>
+
+  <div class="statsbar">
+    <div class="stat received">
+      <div class="label">RECEIVED</div>
+      <div class="value" id="statReceived">₱0.00</div>
+    </div>
+    <div class="stat spent">
+      <div class="label">SPENT</div>
+      <div class="value" id="statSpent">₱0.00</div>
+    </div>
+    <div class="stat cash">
+      <div class="label">CASH ON HAND</div>
+      <div class="value" id="statCash">₱0.00</div>
+    </div>
+    <div class="stat covered">
+      <div class="label">OUTSTANDING BALANCE</div>
+      <div class="value" id="statCovered">₱0.00</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ---- Supabase setup ----
+  const SUPABASE_URL = "https://hmtmcovczxdxmgmhufwn.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtdG1jb3ZjenhkeG1nbWh1ZnduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2OTE2OTIsImV4cCI6MjEwNTI2NzY5Mn0.r_x0xdZg6ZUILU1cR5GlDZsTTR7iwQmwdQJ5mCtSwiA";
+  const isConfigured = SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY";
+  const REST = SUPABASE_URL.replace(/\/$/, "") + "/rest/v1";
+  const sbHeaders = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: "Bearer " + SUPABASE_ANON_KEY,
+    "Content-Type": "application/json"
+  };
+  async function sbErr(res) {
+    try { const j = await res.json(); return j.message || res.statusText; }
+    catch (e) { return res.statusText; }
+  }
+  async function sbSelect(table, qs) {
+    const res = await fetch(`${REST}/${table}?${qs}`, { headers: sbHeaders });
+    if (!res.ok) throw new Error(await sbErr(res));
+    return res.json();
+  }
+  async function sbInsert(table, rows) {
+    const res = await fetch(`${REST}/${table}`, {
+      method: "POST",
+      headers: Object.assign({}, sbHeaders, { Prefer: "return=representation" }),
+      body: JSON.stringify(rows)
+    });
+    if (!res.ok) throw new Error(await sbErr(res));
+    return res.json();
+  }
+  async function sbDelete(table, column, value) {
+    const res = await fetch(`${REST}/${table}?${column}=eq.${encodeURIComponent(value)}`, {
+      method: "DELETE", headers: sbHeaders
+    });
+    if (!res.ok) throw new Error(await sbErr(res));
+    return true;
+  }
+  async function sbUpdate(table, column, value, patch) {
+    const res = await fetch(`${REST}/${table}?${column}=eq.${encodeURIComponent(value)}`, {
+      method: "PATCH",
+      headers: Object.assign({}, sbHeaders, { Prefer: "return=representation" }),
+      body: JSON.stringify(patch)
+    });
+    if (!res.ok) throw new Error(await sbErr(res));
+    return res.json();
+  }
+
+  const SESSION_KEY = "ateCynthiaFarmSession";
+
+  const ICONS = {
+    bell: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+    leaf: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-6 7-11 15-11 0 8-5 15-11 15Z"/><path d="M4 20c4-4 8-8 15-15"/></svg>`,
+    sack: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l1 4c2 2 3 5 3 8a8 8 0 0 1-16 0c0-3 1-6 3-8Z"/><path d="M9 3c0 2 1 3 3 3s3-1 3-3"/></svg>`,
+    droplet: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13Z"/></svg>`,
+    bolt: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>`,
+    wrench: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2.8-.9-.9-2.8 2.8-2.8Z"/></svg>`,
+    cash: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 6v12M18 6v12"/></svg>`,
+    clock: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`,
+    trash: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>`,
+    wallet: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3"/><path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-4"/><path d="M15 12h5v4h-5a2 2 0 0 1 0-4Z"/></svg>`,
+    users: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+  };
+
+  const CATEGORIES = [
+    { key: "danny", label: "Danny", sub: "Farm caretaker salary", icon: "bell", type: "expense",
+      fieldLabel: "Work covered", placeholder: "e.g. Weekly pay, Sept 1–7", hasOR: false },
+    { key: "grass", label: "Grass Keeper", sub: "Grass cutting & trimming", icon: "leaf", type: "expense",
+      fieldLabel: "Work done", placeholder: "e.g. Trimmed front lot", hasOR: false },
+    { key: "feeds", label: "Feeds", sub: "Feeds cost for farm animals", icon: "sack", type: "expense",
+      fieldLabel: "Feeds", placeholder: "e.g. Hog feeds, 3 sacks", hasOR: false },
+    { key: "nawasa", label: "NAWASA", sub: "Water bill", icon: "droplet", type: "expense",
+      fieldLabel: "Billing period", placeholder: "e.g. August 2026", hasOR: true },
+    { key: "pelco", label: "PELCO", sub: "Electricity bill", icon: "bolt", type: "expense",
+      fieldLabel: "Billing period", placeholder: "e.g. August 2026", hasOR: true },
+    { key: "maintenance", label: "Maintenance", sub: "Other farm maintenance", icon: "wrench", type: "expense",
+      fieldLabel: "Work done", placeholder: "e.g. Fence repair", hasOR: false },
+    { key: "covered", label: "ABONO", sub: "Paid personally by the person keeping this record when cash on hand is empty or not enough to cover bills, salaries, etc.", icon: "wallet", type: "covered",
+      fieldLabel: "What it covered", placeholder: "e.g. Feeds bought personally", hasOR: false },
+    { key: "cashreceived", label: "Cash Received", sub: "Funds received for farm expenses", icon: "cash", type: "income",
+      fieldLabel: "Source / notes", placeholder: "e.g. From Ate Cynthia", hasOR: false }
+  ];
+
+  let entries = [];
+  let currentUser = null;
+  let activeKey = CATEGORIES[0].key;
+
+  // ---------- crypto helpers ----------
+  function bufToHex(buf) {
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+  function genSalt() {
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return bufToHex(arr);
+  }
+  async function hashPassword(password, salt) {
+    const data = new TextEncoder().encode(salt + ":" + password);
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return bufToHex(digest);
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+  function peso(n) {
+    return "₱" + n.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function formatDate(iso) {
+    const d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  // ---------- auth screens ----------
+  function showAuth(html) {
+    document.getElementById("appRoot").style.display = "none";
+    document.getElementById("authRoot").innerHTML = `<div class="auth-wrap"><div class="auth-card">${html}</div></div>`;
+  }
+
+  function renderSetupScreen(errorMsg) {
+    showAuth(`
+      <h1>Create admin account</h1>
+      <p class="sub">No account exists yet. Set up the first admin for Ate Cynthia Farm.</p>
+      ${errorMsg ? `<div class="auth-error">${escapeHtml(errorMsg)}</div>` : ""}
+      <form id="setupForm">
+        <div class="field"><label for="suUser">Username</label><input type="text" id="suUser" required></div>
+        <div class="field"><label for="suPass">Password</label><input type="password" id="suPass" required></div>
+        <button type="submit" class="auth-btn">Create admin &amp; log in</button>
+      </form>
+    `);
+    document.getElementById("setupForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const username = document.getElementById("suUser").value.trim();
+      const password = document.getElementById("suPass").value;
+      if (!username || !password) return;
+      const btn = ev.target.querySelector("button");
+      btn.disabled = true; btn.textContent = "Creating…";
+      const salt = genSalt();
+      const password_hash = await hashPassword(password, salt);
+      try {
+        const rows = await sbInsert("app_users", [{ username, salt, password_hash, role: "admin" }]);
+        const data = rows[0];
+        setSession({ id: data.id, username: data.username, role: data.role });
+        boot();
+      } catch (err) {
+        renderSetupScreen("Could not create account: " + err.message);
+      }
+    });
+  }
+
+  function renderLoginScreen(errorMsg) {
+    showAuth(`
+      <h1>Ate Cynthia Farm</h1>
+      <p class="sub">Sign in to the maintenance &amp; bills record.</p>
+      ${errorMsg ? `<div class="auth-error">${escapeHtml(errorMsg)}</div>` : ""}
+      <form id="loginForm">
+        <div class="field"><label for="liUser">Username</label><input type="text" id="liUser" required></div>
+        <div class="field"><label for="liPass">Password</label><input type="password" id="liPass" required></div>
+        <button type="submit" class="auth-btn">Log in</button>
+      </form>
+    `);
+    document.getElementById("loginForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const username = document.getElementById("liUser").value.trim();
+      const password = document.getElementById("liPass").value;
+      const btn = ev.target.querySelector("button");
+      btn.disabled = true; btn.textContent = "Checking…";
+      try {
+        const rows = await sbSelect("app_users", `select=*&username=eq.${encodeURIComponent(username)}`);
+        const data = rows[0];
+        if (!data) { renderLoginScreen("Incorrect username or password."); return; }
+        const hash = await hashPassword(password, data.salt);
+        if (hash !== data.password_hash) { renderLoginScreen("Incorrect username or password."); return; }
+        setSession({ id: data.id, username: data.username, role: data.role });
+        boot();
+      } catch (err) {
+        renderLoginScreen("Could not reach the server: " + err.message);
+      }
+    });
+  }
+
+  function setSession(u) {
+    currentUser = u;
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(u)); } catch (e) {}
+  }
+  function getSession() {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function logout() {
+    currentUser = null;
+    try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    boot();
+  }
+
+  // ---------- main app ----------
+  function renderWho() {
+    const box = document.getElementById("whoBox");
+    box.innerHTML = `${escapeHtml(currentUser.username)}<span class="role-tag">${currentUser.role}</span><button id="changePwBtn">change password</button><button id="logoutBtn">log out</button>`;
+    document.getElementById("logoutBtn").addEventListener("click", logout);
+    document.getElementById("changePwBtn").addEventListener("click", () => { activeKey = "changepw"; renderContent(); renderSidebar(); });
+  }
+
+  function renderSidebar() {
+    const nav = document.getElementById("sidebar");
+    nav.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement("button");
+      btn.className = "navitem" + (cat.key === activeKey ? " active" : "");
+      btn.innerHTML = ICONS[cat.icon] + `<span>${cat.label}</span>`;
+      btn.addEventListener("click", () => { activeKey = cat.key; renderContent(); renderSidebar(); });
+      nav.appendChild(btn);
+    });
+    const hr = document.createElement("hr");
+    nav.appendChild(hr);
+    const histBtn = document.createElement("button");
+    histBtn.className = "navitem" + (activeKey === "history" ? " active" : "");
+    histBtn.innerHTML = ICONS.clock + `<span>History</span>`;
+    histBtn.addEventListener("click", () => { activeKey = "history"; renderContent(); renderSidebar(); });
+    nav.appendChild(histBtn);
+
+    if (currentUser.role === "admin") {
+      const adminBtn = document.createElement("button");
+      adminBtn.className = "navitem" + (activeKey === "admin" ? " active" : "");
+      adminBtn.innerHTML = ICONS.users + `<span>Admin</span>`;
+      adminBtn.addEventListener("click", () => { activeKey = "admin"; renderContent(); renderSidebar(); });
+      nav.appendChild(adminBtn);
+    }
+  }
+
+  function renderStats() {
+    let received = 0, spent = 0, outstanding = 0, paidBack = 0;
+    entries.forEach(e => {
+      const cat = CATEGORIES.find(c => c.key === e.category);
+      if (cat && cat.type === "income") received += e.amount;
+      else if (cat && cat.type === "covered") {
+        if (e.paid) paidBack += e.amount;
+        else outstanding += e.amount;
+      }
+      else spent += e.amount;
+    });
+    document.getElementById("statReceived").textContent = peso(received);
+    document.getElementById("statSpent").textContent = peso(spent);
+    document.getElementById("statCash").textContent = peso(received - spent - paidBack);
+    document.getElementById("statCovered").textContent = peso(outstanding);
+  }
+
+  function bindDeletes() {
+    document.querySelectorAll(".del").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = Number(btn.getAttribute("data-id"));
+        removeEntry(id);
+      });
+    });
+    document.querySelectorAll(".mark-paid-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.getAttribute("data-id"));
+        btn.disabled = true; btn.textContent = "Updating…";
+        try {
+          await sbUpdate("entries", "id", id, { paid: true });
+          await loadEntries();
+        } catch (err) {
+          alert("Could not update: " + err.message);
+          btn.disabled = false; btn.textContent = "mark as paid from cash";
+        }
+      });
+    });
+  }
+
+  async function renderContent() {
+    const content = document.getElementById("content");
+    const canEdit = currentUser.role === "admin" || currentUser.role === "editor";
+
+    if (activeKey === "admin" && currentUser.role === "admin") {
+      renderAdminPage();
+      return;
+    }
+
+    if (activeKey === "changepw") {
+      renderChangePasswordPage();
+      return;
+    }
+
+    if (activeKey === "history") {
+      const sorted = [...entries].sort((a, b) => a.date !== b.date ? b.date.localeCompare(a.date) : b.id - a.id);
+      let html = `<h2 class="cat-title">History</h2><p class="cat-sub">Combined record of every entry</p>`;
+      if (sorted.length === 0) {
+        html += `<div class="empty">No entries yet.</div>`;
+      } else {
+        html += sorted.map(e => {
+          const cat = CATEGORIES.find(c => c.key === e.category) || {};
+          return `
+            <div class="entry">
+              <div class="info">
+                <div class="hist-cat">${cat.label || e.category}</div>
+                <div class="date">${formatDate(e.date)}</div>
+                <div class="desc">${escapeHtml(e.note || "—")}</div>
+                ${e.or ? `<div class="or">O.R. No. ${escapeHtml(e.or)}</div>` : ""}
+                ${cat.type === "covered" ? (e.paid ? `<div class="or" style="color:var(--leaf)">✓ Paid back from cash</div>` : `<div class="or">Not yet paid back</div>`) : ""}
+                <div class="amt">${peso(e.amount)}</div>
+              </div>
+              ${canEdit ? `<button class="del" data-id="${e.id}">${ICONS.trash}</button>` : ""}
+            </div>`;
+        }).join("");
+      }
+      content.innerHTML = html;
+      bindDeletes();
+      return;
+    }
+
+    const cat = CATEGORIES.find(c => c.key === activeKey);
+    const catEntries = entries.filter(e => e.category === cat.key)
+      .sort((a, b) => a.date !== b.date ? b.date.localeCompare(a.date) : b.id - a.id);
+    const total = catEntries.reduce((s, e) => s + e.amount, 0);
+    const totalLabel = cat.type === "income" ? "Total received" : cat.type === "covered" ? "Total Abono" : "Total spent";
+
+    let html = `
+      <h2 class="cat-title">${cat.label}</h2>
+      <p class="cat-sub">${cat.sub}</p>
+      <div class="cat-total">${totalLabel}: <b>${peso(total)}</b></div>
+    `;
+    if (cat.type === "covered") {
+      const outstanding = catEntries.filter(e => !e.paid).reduce((s, e) => s + e.amount, 0);
+      const paidBack = catEntries.filter(e => e.paid).reduce((s, e) => s + e.amount, 0);
+      html += `<div class="cat-total">Still outstanding: <b>${peso(outstanding)}</b> &nbsp;•&nbsp; Paid back from cash: <b>${peso(paidBack)}</b></div>`;
+    }
+
+    if (canEdit) {
+      html += `
+      <div class="card">
+        <form id="entryForm">
+          <div class="field"><label for="fDate">Date</label><input type="date" id="fDate" required></div>
+          <div class="field"><label for="fNote">${cat.fieldLabel}</label><input type="text" id="fNote" placeholder="${cat.placeholder}"></div>
+          ${cat.hasOR ? `<div class="field"><label for="fOr">O.R. No.</label><input type="text" id="fOr" placeholder="Official receipt number"></div>` : ""}
+          <div class="field"><label for="fAmount">${cat.type === "income" ? "Amount received" : cat.type === "covered" ? "Abono amount" : "Amount paid"} (₱)</label><input type="number" id="fAmount" min="0" step="0.01" placeholder="0.00" required></div>
+          <button type="submit" class="add-btn"><span class="plus">+</span>Add entry</button>
+        </form>
+      </div>`;
+    }
+
+    if (catEntries.length === 0) {
+      html += `<div class="empty">No entries yet for ${cat.label}.</div>`;
+    } else {
+      html += catEntries.map(e => `
+        <div class="entry ${cat.type === "income" ? "income" : cat.type === "covered" ? "covered" : ""}">
+          <div class="info">
+            <div class="date">${formatDate(e.date)}</div>
+            <div class="desc">${escapeHtml(e.note || "—")}</div>
+            ${e.or ? `<div class="or">O.R. No. ${escapeHtml(e.or)}</div>` : ""}
+            <div class="amt">${peso(e.amount)}</div>
+            ${cat.type === "covered" ? (e.paid
+              ? `<div class="or" style="color:var(--leaf)">✓ Paid back from cash on hand</div>`
+              : (canEdit ? `<button class="del-user mark-paid-btn" data-id="${e.id}" style="margin-top:6px">mark as paid from cash</button>` : `<div class="or">Not yet paid back</div>`)
+            ) : ""}
+          </div>
+          ${canEdit ? `<button class="del" data-id="${e.id}">${ICONS.trash}</button>` : ""}
+        </div>
+      `).join("");
+    }
+
+    content.innerHTML = html;
+
+    if (canEdit) {
+      document.getElementById("fDate").valueAsDate = new Date();
+      document.getElementById("entryForm").addEventListener("submit", function(ev) {
+        ev.preventDefault();
+        const date = document.getElementById("fDate").value;
+        const note = document.getElementById("fNote").value.trim();
+        const amount = parseFloat(document.getElementById("fAmount").value);
+        const or = cat.hasOR ? document.getElementById("fOr").value.trim() : "";
+        if (!date || isNaN(amount) || amount <= 0) return;
+        const btn = ev.target.querySelector("button[type=submit]");
+        btn.disabled = true; btn.textContent = "Saving…";
+        addEntry({ category: cat.key, date, note, amount, or });
+      });
+    }
+    bindDeletes();
+  }
+
+  function renderChangePasswordPage() {
+    const content = document.getElementById("content");
+    content.innerHTML = `
+      <h2 class="cat-title">Change password</h2>
+      <p class="cat-sub">Update the password for ${escapeHtml(currentUser.username)}</p>
+      <div class="card">
+        <form id="pwForm">
+          <div id="pwMsg"></div>
+          <div class="field"><label for="pwCurrent">Current password</label><input type="password" id="pwCurrent" required></div>
+          <div class="field"><label for="pwNew">New password</label><input type="password" id="pwNew" required></div>
+          <div class="field"><label for="pwConfirm">Confirm new password</label><input type="password" id="pwConfirm" required></div>
+          <button type="submit" class="auth-btn">Update password</button>
+        </form>
+      </div>
+    `;
+    document.getElementById("pwForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const current = document.getElementById("pwCurrent").value;
+      const next = document.getElementById("pwNew").value;
+      const confirm = document.getElementById("pwConfirm").value;
+      const msg = document.getElementById("pwMsg");
+      msg.innerHTML = "";
+      if (next !== confirm) {
+        msg.innerHTML = `<div class="auth-error">New passwords don't match.</div>`;
+        return;
+      }
+      if (next.length < 4) {
+        msg.innerHTML = `<div class="auth-error">Choose a longer password.</div>`;
+        return;
+      }
+      const btn = ev.target.querySelector("button");
+      btn.disabled = true; btn.textContent = "Updating…";
+      try {
+        const rows = await sbSelect("app_users", `select=*&id=eq.${currentUser.id}`);
+        const record = rows[0];
+        const currentHash = await hashPassword(current, record.salt);
+        if (currentHash !== record.password_hash) {
+          msg.innerHTML = `<div class="auth-error">Current password is incorrect.</div>`;
+          btn.disabled = false; btn.textContent = "Update password";
+          return;
+        }
+        const newSalt = genSalt();
+        const newHash = await hashPassword(next, newSalt);
+        await sbUpdate("app_users", "id", currentUser.id, { salt: newSalt, password_hash: newHash });
+        msg.innerHTML = `<div class="cat-total" style="color:var(--leaf)">Password updated.</div>`;
+        ev.target.reset();
+        btn.disabled = false; btn.textContent = "Update password";
+      } catch (err) {
+        msg.innerHTML = `<div class="auth-error">${escapeHtml(err.message)}</div>`;
+        btn.disabled = false; btn.textContent = "Update password";
+      }
+    });
+  }
+
+  async function renderAdminPage() {
+    const content = document.getElementById("content");
+    content.innerHTML = `<h2 class="cat-title">Admin</h2><p class="cat-sub">Manage who can access this app</p><div id="adminBody">Loading…</div>`;
+
+    let users;
+    try {
+      users = await sbSelect("app_users", "select=*&order=created_at.asc");
+    } catch (err) {
+      document.getElementById("adminBody").innerHTML = `<div class="empty">Could not load users: ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    let html = `
+      <div class="card">
+        <form id="createUserForm">
+          <div class="field"><label for="nuUser">Username</label><input type="text" id="nuUser" required></div>
+          <div class="field"><label for="nuPass">Password</label><input type="password" id="nuPass" required></div>
+          <div class="field">
+            <label for="nuRole">Role</label>
+            <select id="nuRole">
+              <option value="viewer">Viewer — can view only</option>
+              <option value="editor">Editor — can view and add entries</option>
+              <option value="admin">Admin — full access, manages users</option>
+            </select>
+          </div>
+          <button type="submit" class="add-btn"><span class="plus">+</span>Create user</button>
+        </form>
+      </div>
+    `;
+    html += users.map(u => `
+      <div class="user-row">
+        <div><span class="uname">${escapeHtml(u.username)}</span><span class="urole">${u.role}</span></div>
+        <div>
+          <button class="del-user reset-pw-btn" data-id="${u.id}" data-username="${escapeHtml(u.username)}">reset password</button>
+          ${u.id !== currentUser.id ? `<button class="del-user remove-user-btn" data-id="${u.id}" style="margin-left:10px">remove</button>` : ""}
+        </div>
+      </div>
+    `).join("");
+
+    document.getElementById("adminBody").innerHTML = html;
+
+    document.getElementById("createUserForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const username = document.getElementById("nuUser").value.trim();
+      const password = document.getElementById("nuPass").value;
+      const role = document.getElementById("nuRole").value;
+      if (!username || !password) return;
+      const btn = ev.target.querySelector("button");
+      btn.disabled = true; btn.textContent = "Creating…";
+      const salt = genSalt();
+      const password_hash = await hashPassword(password, salt);
+      try {
+        await sbInsert("app_users", [{ username, salt, password_hash, role }]);
+        renderAdminPage();
+      } catch (err) {
+        alert("Could not create user: " + err.message);
+        btn.disabled = false; btn.innerHTML = `<span class="plus">+</span>Create user`;
+      }
+    });
+
+    document.querySelectorAll(".remove-user-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("Remove this user's access?")) return;
+        const id = Number(btn.getAttribute("data-id"));
+        try {
+          await sbDelete("app_users", "id", id);
+          renderAdminPage();
+        } catch (err) {
+          alert("Could not remove user: " + err.message);
+        }
+      });
+    });
+
+    document.querySelectorAll(".reset-pw-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const username = btn.getAttribute("data-username");
+        const newPassword = prompt(`New password for ${username}:`);
+        if (!newPassword) return;
+        if (newPassword.length < 4) { alert("Choose a longer password."); return; }
+        const id = Number(btn.getAttribute("data-id"));
+        try {
+          const newSalt = genSalt();
+          const newHash = await hashPassword(newPassword, newSalt);
+          await sbUpdate("app_users", "id", id, { salt: newSalt, password_hash: newHash });
+          alert(`Password updated for ${username}.`);
+        } catch (err) {
+          alert("Could not reset password: " + err.message);
+        }
+      });
+    });
+  }
+
+  // ---------- data ----------
+  async function loadEntries() {
+    try {
+      const data = await sbSelect("entries", "select=*&order=entry_date.desc,id.desc");
+      entries = data.map(row => ({
+        id: row.id, category: row.category, date: row.entry_date,
+        note: row.note || "", amount: Number(row.amount), or: row.or_number || "",
+        paid: !!row.paid
+      }));
+      renderStats();
+      renderContent();
+    } catch (err) {
+      document.getElementById("content").innerHTML = `<div class="empty">Could not load data: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function addEntry(newEntry) {
+    try {
+      await sbInsert("entries", [{
+        category: newEntry.category, entry_date: newEntry.date, note: newEntry.note,
+        amount: newEntry.amount, or_number: newEntry.or || null
+      }]);
+      await loadEntries();
+    } catch (err) {
+      alert("Could not save entry: " + err.message);
+    }
+  }
+
+  async function removeEntry(id) {
+    try {
+      await sbDelete("entries", "id", id);
+      await loadEntries();
+    } catch (err) {
+      alert("Could not delete entry: " + err.message);
+    }
+  }
+
+  function showApp() {
+    document.getElementById("authRoot").innerHTML = "";
+    document.getElementById("appRoot").style.display = "";
+    renderWho();
+    renderSidebar();
+    loadEntries();
+  }
+
+  // ---------- boot ----------
+  async function boot() {
+    if (!isConfigured) {
+      showAuth(`<h1>Set up needed</h1><p class="sub">Connect this app to your Supabase project first — see the SUPABASE_URL / SUPABASE_ANON_KEY placeholders near the top of the script.</p>`);
+      return;
+    }
+    const session = getSession();
+    if (session) {
+      try {
+        const rows = await sbSelect("app_users", `select=*&id=eq.${session.id}`);
+        const data = rows[0];
+        if (data) {
+          currentUser = { id: data.id, username: data.username, role: data.role };
+          setSession(currentUser);
+          showApp();
+          return;
+        }
+      } catch (err) { /* fall through to login */ }
+      try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    }
+    try {
+      const rows = await sbSelect("app_users", "select=id&limit=1");
+      if (!rows.length) renderSetupScreen();
+      else renderLoginScreen();
+    } catch (err) {
+      showAuth(`<h1>Set up needed</h1><p class="sub">Could not reach the users table. Make sure you've run the latest supabase-schema.sql.<br>${escapeHtml(err.message)}</p>`);
+    }
+  }
+
+  boot();
+})();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch((e) => console.warn("SW registration failed:", e));
+  });
+}
+</script>
+
+</body>
+</html>
